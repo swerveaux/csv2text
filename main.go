@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -11,8 +12,7 @@ import (
 )
 
 func main() {
-	var inputFilename string
-	var outputDirectory string
+	var inputFilename, outputDirectory string
 
 	flag.StringVar(&inputFilename, "in", "", "path to input csv file: e.g., 'file.csv' or '/Users/someone/csvfiles/file.csv")
 	flag.StringVar(&outputDirectory, "outdir", ".", "path to directory to create output files, defaults to the current working directory ('.')")
@@ -29,7 +29,6 @@ func main() {
 	defer infile.Close()
 
 	r := csv.NewReader(infile)
-	// Read first line to get column names
 	columnNames, err := r.Read()
 	if err != nil {
 		log.Fatalf("failed reading first line for column names: %v", err)
@@ -54,7 +53,14 @@ func main() {
 }
 
 func writeFile(cols, vals []string, outputFileDir string) error {
-	out, err := os.Create(filepath.Join(outputFileDir, vals[0]+" "+vals[1]+".txt"))
+	if len(vals) == 0 {
+		return errors.New("a line with no fields is an affront to this app")
+	}
+	fileName := vals[0]
+	if len(vals) > 1 {
+		fileName = fileName + " " + vals[1]
+	}
+	out, err := os.Create(filepath.Join(outputFileDir, fileName+".txt"))
 	if err != nil {
 		return fmt.Errorf("unable to open file '%s' for writing: %v", vals[0]+".txt", err)
 	}
