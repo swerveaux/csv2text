@@ -2,17 +2,27 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatalf("Need a CSV file as an argument, e.g., csv2text somefile.csv")
+	var inputFilename string
+	var outputDirectory string
+
+	flag.StringVar(&inputFilename, "in", "", "path to input csv file: e.g., 'file.csv' or '/Users/someone/csvfiles/file.csv")
+	flag.StringVar(&outputDirectory, "outdir", ".", "path to directory to create output files, defaults to the current working directory ('.')")
+	flag.Parse()
+
+	if inputFilename == "" {
+		log.Fatalf("You must specify and input filename with --in")
 	}
-	infile, err := os.Open("sample.csv")
+
+	infile, err := os.Open(inputFilename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +45,7 @@ func main() {
 		if len(l) != len(columnNames) {
 			log.Fatalf("line %d contained %d fields which does not match the %d field titles", lineNumber, len(l), len(columnNames))
 		}
-		err = writeFile(columnNames, l)
+		err = writeFile(columnNames, l, outputDirectory)
 		if err != nil {
 			log.Fatalf("failed to write file for line %d: %v", lineNumber, err)
 		}
@@ -43,8 +53,8 @@ func main() {
 	}
 }
 
-func writeFile(cols, vals []string) error {
-	out, err := os.Create(vals[0]+".txt")
+func writeFile(cols, vals []string, outputFileDir string) error {
+	out, err := os.Create(filepath.Join(outputFileDir, vals[0]+" "+vals[1]+".txt"))
 	if err != nil {
 		return fmt.Errorf("unable to open file '%s' for writing: %v", vals[0]+".txt", err)
 	}
