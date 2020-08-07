@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	if inputFilename == "" {
-		log.Fatalf("You must specify and input filename with --in")
+		log.Fatalf("You must specify an input filename with --in")
 	}
 
 	infile, err := os.Open(inputFilename)
